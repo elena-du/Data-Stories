@@ -1,0 +1,126 @@
+---
+title: "Kickstarter Analysis - Level 1"
+author: "Elena Dubova"
+date: "7/1/2020"
+output:
+  pdf_document: default
+  html_document: default
+---
+```{r setup, include=FALSE, echo=FALSE}
+require("knitr")
+opts_knit$set(root.dir = '/Users/elena/GitHub/Data-Stories/explore/r', include=FALSE)
+```
+
+## Importing data
+
+```{r}
+
+data <- read.csv("kickstarter.csv")
+
+```
+
+```{r}
+head(data, 3)
+```
+
+### Visualization
+
+Boxplot of goal, pledged and bakers.
+```{r}
+boxplot(data$goal)
+```
+
+
+```{r}
+boxplot(data$usd.pledged)
+```
+
+
+```{r}
+boxplot(data$backers)
+```
+
+Wow, outliers attack us! This is a pretty common scenario. Let's get rid of them!
+
+```{r}
+new <- data[data$backers < 150,]
+new <- new[new$goal < 30000,]
+new <- new[new$usd.pledged < 15000,]
+```
+
+```{r}
+boxplot(new$goal)
+```
+
+```{r}
+boxplot(new$usd.pledged)
+```
+
+```{r}
+boxplot(new$backers)
+```
+
+Histogram of goal, pledged, and bakers.
+```{r}
+hist(new$usd.pledged)
+```
+```{r}
+hist(new$goal)
+```
+```{r}
+hist(new$backers)
+```
+
+
+What state is most common?
+
+```{r}
+temp = table(new$state)
+barplot(temp, horiz = FALSE, main='Main Categories', axes=TRUE,beside = FALSE)
+
+```
+
+Finally, let's have a look at variable relations:
+
+We are mostly interested in **success** and **failure**, so let's filter them out for clarity.
+
+```{r}
+new <- new %>%
+  filter(state %in% c('failed', 'successful'))
+
+```
+
+
+```{r}
+color_var <- as.factor(new$state)
+plot(new$usd.pledged, new$backers, pch=1, col=color_var)
+legend("topleft", legend=levels(color_var), pch=1, col=unique(color_var))
+```
+
+```{r}
+color_var <- as.factor(new$state)
+plot(new$goal, new$usd.pledged, pch=1, col=color_var)
+legend("topleft", legend=levels(color_var), pch=1, col=unique(color_var))
+```
+
+Sometimes it is useful to log-transform the variables to see relations, but we should be careful with it - you are changing the meaning of the variable! 
+
+```{r}
+
+plot(log2(new$usd.pledged), log2(new$backers), col=as.factor(new$state))
+```
+
+
+```{r}
+plot(log(new$goal), log(new$usd.pledged), col=as.factor(new$state))
+```
+
+We can try pair plot as well
+
+```{r}
+data %>%
+  select(where(is.numeric)) %>%
+  pairs()
+```
+
+What is your story about Kickstarter projects now? Feel free to explore more and share!

@@ -1,0 +1,129 @@
+---
+title: "Kickstarter Analysis - Level 2"
+author: "Elena Dubova"
+date: "7/1/2020"
+output:
+  pdf_document: default
+  html_document: default
+---
+```{r setup, include=FALSE, echo=FALSE}
+require("knitr")
+opts_knit$set(root.dir = '/Users/elena/GitHub/Data-Stories/explore/r', include=FALSE)
+```
+
+## Importing data
+
+```{r}
+
+data <- read.csv("kickstarter.csv")
+
+```
+
+```{r}
+head(data, 3)
+```
+
+## Exploratory Data Analysis
+
+```{r}
+
+library(dplyr)
+
+```
+
+### Looking into the numbers
+
+Get mean and median values for goals.
+```{r}
+
+data %>%
+  summarize(mean = mean(goal), median = median(goal))
+
+```
+
+Get minimum and maximum goals.
+```{r}
+
+data %>%
+  summarize(minimum = min(goal), maximum = max(goal), range=max(goal)-min(goal))
+
+
+```
+
+Get variance and standard deviation.
+```{r}
+
+data %>%
+  summarize(variance = var(goal), std_dev1 = sd(goal), std_dev2 = sqrt(variance))
+
+```
+
+Get quantiles
+```{r}
+
+data %>%
+  summarize(q_25 = quantile(goal,0.25), 
+            q_75 = quantile(goal,0.75), 
+            iqr1 = q_75-q_25, 
+            iqr2 = IQR(goal))
+
+```
+
+Get it all in one nice table 
+```{r}
+
+data %>%
+  summarize(mean = mean(goal), 
+            median = median(goal),
+            minimum = min(goal), 
+            maximum = max(goal), 
+            range=max(goal)-min(goal),
+            variance = var(goal), 
+            std_dev = sd(goal),
+            q_25 = quantile(goal,0.25), 
+            q_75 = quantile(goal,0.75), 
+            iqr = IQR(goal)
+            )
+
+```
+
+Numbers are good. Now let us get sense of categories.
+
+Count values in each main_category. What is the most and least popular category? What is the median goal within each category?
+```{r}
+data %>%
+  group_by(main_category) %>%
+  summarise(count = n(), mean_goal = mean(goal)) %>%
+  arrange(desc(mean_goal))
+
+```
+
+You do not have to use dplyr to explore categories. Base package also has nice functions.
+```{r}
+table(data$main_category)
+```
+
+Let's see what makes a successful project. How different is the mean?
+
+```{r}
+
+data %>%
+  filter(state %in% c('failed', 'successful')) %>%
+  group_by(state) %>%
+  summarize(count = n(), 
+            mean_goal = mean(goal))
+
+```
+
+Let's see what makes a successful project (and consider its category this time).
+
+```{r}
+data %>%
+  filter(state == 'successful') %>%
+  group_by(main_category) %>%
+  summarize(count = n(), 
+            mean_goal = mean(goal)) %>%
+  arrange(desc(count)) %>%
+  top_n(10)
+
+```
